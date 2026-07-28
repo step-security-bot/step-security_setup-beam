@@ -1,0 +1,35 @@
+{
+  "name": "setup-beam",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "ncc build src/setup-beam.js --no-cache",
+    "format": "prettier src/**/*.js test/**/*.js *.mjs --write",
+    "eslint": "eslint src/**/*.js test/**/*.js *.mjs",
+    "test": "node --test --test-reporter=spec",
+    "clean-dist": "rm -rf ./dist",
+    "lint": "npm run eslint",
+    "build-dist": "npm run clean-dist && npm install && npm run build && npm run format && npm run lint"
+  },
+  "dependencies": {
+    "@actions/core": "3.0.0",
+    "@actions/exec": "3.0.0",
+    "@actions/tool-cache": "4.0.0",
+    "axios": "1.18.1",
+    "csv-parse": "7.0.1",
+    "semver": "7.7.4",
+    "smol-toml": "1.7.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@vercel/ncc": "0.44.1",
+    "eslint": "10.6.0",
+    "globals": "17.7.0",
+    "prettier": "3.9.4",
+    "yarn": "1.22.22"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
