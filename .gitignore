@@ -1,0 +1,5 @@
+/node_modules
+/test/.tool-versions
+/test/mise.toml
+/dist/package.json
+.idea

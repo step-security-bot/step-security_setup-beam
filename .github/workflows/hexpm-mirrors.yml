@@ -1,0 +1,40 @@
+---
+name: hexpm-mirrors
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  test-failing-first-mirror:
+    name: Test option hexpm-mirrors with a dummy first mirror
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ github.actor == 'dependabot[bot]' && fromJSON('["ubuntu-24.04"]') || fromJSON('["ubuntu-24.04", "windows-2022", "macos-15"]') }}
+        otp-version: ['27']
+        elixir-version: ['v1.18', '']
+        install-rebar: [true, false]
+        install-hex: [true, false]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Use step-security/setup-beam
+        id: setup-beam
+        uses: ./
+        with:
+          otp-version: ${{matrix.otp-version}}
+          elixir-version: ${{matrix.elixir-version}}
+          install-rebar: ${{matrix.install-rebar}}
+          install-hex: ${{matrix.install-hex}}
+          hexpm-mirrors: |
+            https://mirror.invalid
+            https://cdn.jsdelivr.net/hex
+            https://builds.hex.pm

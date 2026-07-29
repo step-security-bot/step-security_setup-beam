@@ -1,0 +1,107 @@
+---
+name: action
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+jobs:
+  check_integrity:
+    name: Expected local npm actions
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: npm run build-dist
+      - name: Check if build left artifacts
+        run: git diff --exit-code --ignore-space-at-eol
+
+  check_action:
+    name: Action
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: raven-actions/actionlint@v2
+
+  unit_tests_ubuntu:
+    name: Unit tests (Ubuntu)
+    strategy:
+      matrix:
+        os: ${{ github.actor == 'dependabot[bot]' && fromJSON('["ubuntu-latest"]') || fromJSON('["ubuntu-24.04-arm", "ubuntu-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm test
+        env:
+          NODE_ENV: test
+      - name: .tool-versions test
+        id: setup-beam
+        uses: ./
+        with:
+          install-rebar: false
+          install-hex: false
+          version-file: test/.tool-versions
+          version-type: strict
+
+  unit_tests_windows:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    name: Unit tests (Windows)
+    strategy:
+      matrix:
+        os:
+          - windows-latest # x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: npm install --production
+      - run: npm test
+        env:
+          NODE_ENV: test
+      - name: .tool-versions test
+        id: setup-beam
+        uses: ./
+        with:
+          install-rebar: false
+          install-hex: false
+          version-file: test/.tool-versions
+          version-type: strict
+
+  unit_tests_macos:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    name: Unit tests (macOS)
+    strategy:
+      matrix:
+        os:
+          - macos-latest # ARM64
+          - macos-15-intel # x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm test
+        env:
+          NODE_ENV: test
